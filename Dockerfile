@@ -16,21 +16,6 @@ RUN pip install --no-cache-dir \
     --extra-index-url https://download.pytorch.org/whl/cpu \
     torch==2.3.1+cpu
 
-# 预下载 OPUS-MT 模型
-RUN python - <<'PY'
-from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
-models = [
-    "Helsinki-NLP/opus-mt-el-en",
-    "Helsinki-NLP/opus-mt-en-el",
-    "Helsinki-NLP/opus-mt-zh-en",
-    "Helsinki-NLP/opus-mt-en-zh",
-]
-for m in models:
-    AutoTokenizer.from_pretrained(m)
-    AutoModelForSeq2SeqLM.from_pretrained(m)
-print("All models cached.")
-PY
-
 WORKDIR /app
 COPY app.py /app/app.py
 
