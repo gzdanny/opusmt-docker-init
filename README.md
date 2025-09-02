@@ -58,6 +58,15 @@ Suitable for both virtualized and bare-metal environments.
    sudo docker ps
    ```
 
+5. **Run quick test** (optional but recommended):  
+   This sends several sample translation requests to verify that the service is functioning correctly.
+   ```bash
+   chmod +x quick-test.sh
+   ./quick-test.sh
+   ```
+   > If you changed the host port in `docker-compose.yml`, run:  
+   > `./quick-test.sh localhost <new-port>`
+
 ---
 
 ## 🌐 API Usage
