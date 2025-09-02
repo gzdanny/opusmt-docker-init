@@ -3,8 +3,10 @@
 # 快速测试 OPUS-MT Docker 服务的翻译效果
 # © 2025 Danny
 
+# 默认访问地址和端口
+# 注意：这里的默认端口应与 docker-compose.yml 中宿主机暴露的端口（冒号左边）一致
 SERVER_IP=${1:-localhost}
-PORT=${2:-8000}
+PORT=${2:-8888}
 
 echo "🔍 Testing OPUS-MT translation server at http://$SERVER_IP:$PORT"
 echo "------------------------------------------------------------"
