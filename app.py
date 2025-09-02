@@ -1,3 +1,5 @@
+# © 2025 Danny. Licensed under Apache License 2.0.
+
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
