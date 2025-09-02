@@ -1,0 +1,8 @@
+version: "3.8"
+services:
+  opusmt:
+    build: .
+    container_name: opusmt
+    ports:
+      - "8000:8000"
+    restart: always
