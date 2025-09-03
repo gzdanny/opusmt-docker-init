@@ -26,6 +26,10 @@ else
 fi
 
 echo "=== [3/5] Creating Python virtual environment ==="
+if [ -d "venv" ]; then
+    echo "Existing virtual environment detected. Removing..."
+    rm -rf venv
+fi
 python3 -m venv venv
 source venv/bin/activate
 
