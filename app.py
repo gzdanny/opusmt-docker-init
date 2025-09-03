@@ -6,9 +6,10 @@ from typing import List, Optional
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 import torch
 import re
+import unicodedata
 from datetime import datetime
 
-app = FastAPI(title="OPUS-MT Translation Server", version="1.1.0")
+app = FastAPI(title="OPUS-MT Translation Server", version="1.2.0")
 
 # 支持的模型映射（已更新希腊语模型 ID）
 MODELS = {
@@ -33,16 +34,25 @@ def load(model_name):
             )
     return loaded[model_name]
 
-# 单次翻译
+# 单次翻译（增加防重复参数 + Unicode 正规化）
 def translate_once(text: str, src: str, tgt: str, max_new_tokens=256) -> str:
     key = (src, tgt)
     if key not in MODELS:
         raise ValueError(f"Unsupported direction: {src}->{tgt}")
     model_name = MODELS[key]
     tok, mdl = load(model_name)
+    # 规范化输入，避免希腊语重音/组合字符问题
+    text = unicodedata.normalize("NFC", text)
     inputs = tok(text, return_tensors="pt")
     with torch.no_grad():
-        out = mdl.generate(**inputs, max_new_tokens=max_new_tokens, do_sample=False)
+        out = mdl.generate(
+            **inputs,
+            max_new_tokens=max_new_tokens,
+            do_sample=False,
+            num_beams=5,
+            no_repeat_ngram_size=3,
+            early_stopping=True
+        )
     return tok.decode(out[0], skip_special_tokens=True)
 
 # 简单语言检测
@@ -59,7 +69,7 @@ class TranslateReq(BaseModel):
     source: Optional[str] = "auto"   # "auto" | "el" | "en" | "zh"
     target: str                      # "el" | "en" | "zh"
     max_new_tokens: Optional[int] = 256
-    debug: Optional[bool] = False    # 新增：是否开启调试模式
+    debug: Optional[bool] = False    # 是否开启调试模式
 
 class TranslateResp(BaseModel):
     translatedText: str
