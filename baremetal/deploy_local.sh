@@ -2,21 +2,21 @@
 set -e
 
 # ================================
-# Bare-metal Local Deployment Script
+# Bare-metal Local Deployment Script (Python 3.10)
 # For development/debugging only
 # Production deployment should use Docker
 # ================================
 
-# Default port is 8888, can be overridden by first argument
 PORT=${1:-8888}
 
-echo "=== [1/6] Installing system dependencies ==="
+echo "=== [1/7] Installing system dependencies ==="
 sudo apt update
 sudo apt install -y --no-install-recommends \
-    ca-certificates tzdata git curl python3 python3-venv python3-pip \
-    build-essential python3-dev pkg-config
-    
-echo "=== [2/6] Cloning repository ==="
+    ca-certificates tzdata git curl \
+    build-essential pkg-config \
+    python3.10 python3.10-venv python3.10-dev python3-pip
+
+echo "=== [2/7] Cloning repository ==="
 if [ -d "$HOME/opusmt-docker-init" ]; then
     echo "Directory ~/opusmt-docker-init already exists. Pulling latest changes..."
     cd ~/opusmt-docker-init
@@ -26,24 +26,26 @@ else
     cd ~/opusmt-docker-init
 fi
 
-echo "=== [3/6] Creating Python virtual environment ==="
+echo "=== [3/7] Removing old virtual environment if exists ==="
 if [ -d "venv" ]; then
     echo "Existing virtual environment detected. Removing..."
     rm -rf venv
 fi
-python3 -m venv venv
+
+echo "=== [4/7] Creating Python 3.10 virtual environment ==="
+python3.10 -m venv venv
 source venv/bin/activate
 
-echo "=== [4/6] Upgrading pip ==="
+echo "=== [5/7] Upgrading pip ==="
 pip install --upgrade pip
 
-echo "=== [5/6] Installing Python dependencies ==="
+echo "=== [6/7] Installing Python dependencies (matching Dockerfile) ==="
 pip install fastapi "uvicorn[standard]" \
     transformers==4.42.0 sentencepiece sacremoses \
     --extra-index-url https://download.pytorch.org/whl/cpu \
     torch
 
-echo "=== [6/6] Starting service on port $PORT ==="
+echo "=== [7/7] Starting service on port $PORT ==="
 echo "You can stop it with Ctrl+C."
 echo "Access API docs at: http://<server-ip>:$PORT/docs"
 uvicorn app:app --host 0.0.0.0 --port "$PORT" --workers 1 --reload
