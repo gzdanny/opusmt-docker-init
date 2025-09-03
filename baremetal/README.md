@@ -1,5 +1,16 @@
 # Bare-metal Local Deployment
 
+**One‑click run on Debian:**
+```bash
+curl -s https://raw.githubusercontent.com/gzdanny/opusmt-docker-init/main/baremetal/deploy_local.sh | bash
+```
+> Append a port number to change the default (8888):
+```bash
+curl -s https://raw.githubusercontent.com/gzdanny/opusmt-docker-init/main/baremetal/deploy_local.sh | bash -s -- 9000
+```
+
+---
+
 This directory contains scripts for running the OPUS-MT translation server **directly on a Debian-based machine** without Docker.  
 It is intended for **development and debugging purposes only**.  
 For production deployment, please use the Docker setup in the root of this repository.
@@ -37,5 +48,3 @@ http://<server-ip>:<port>/docs
 - This setup is for **local development/debugging** only.
 - Code changes to `app.py` will be automatically reloaded.
 - If you need the service to run in the background, consider using `tmux`, `screen`, or `nohup`.
-
----
