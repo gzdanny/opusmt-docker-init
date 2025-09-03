@@ -34,6 +34,19 @@ Suitable for both virtualized and bare-metal environments.
 
 ## 🚀 Quick Start
 
+### Option 1: One‑click deploy (recommended)
+For users who want to get started quickly — this single command will install dependencies, clone the repo, build the image, start the service, and run the quick test automatically.
+
+```bash
+curl -O https://raw.githubusercontent.com/gzdanny/opusmt-docker-init/main/deploy-and-test.sh && bash deploy-and-test.sh
+```
+> The first run will take a few minutes as it downloads Docker base images and translation models.
+
+---
+
+### Option 2: Manual deployment
+For users who want to customize the setup or understand each step in detail.
+
 1. **Install dependencies** (Debian):
    ```bash
    sudo apt update && sudo apt upgrade -y
