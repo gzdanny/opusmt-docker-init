@@ -84,39 +84,35 @@ for i in $(seq 1 30); do
 done
 
 echo "=== [9/9] Warming up models with long, meaningful sentences (en/zh/el) ==="
-declare -A TESTS
+
+function warmup_case() {
+    local text="$1"
+    local src="$2"
+    local tgt="$3"
+    echo -e "\n📤 Warmup Source ($src → $tgt): $text"
+    result=$(curl -s -X POST http://127.0.0.1:$PORT/translate \
+      -H "Content-Type: application/json" \
+      -d "{\"q\":\"$text\",\"source\":\"$src\",\"target\":\"$tgt\"}")
+    echo "📥 Warmup Response: $result"
+}
 
 # en -> zh
-TESTS["en-zh"]="On a quiet evening by the harbor, conversations linger over warm bread and olives, reminding us that progress matters most when it stays close to people and solves real problems with clarity and care."
+warmup_case "On a quiet evening by the harbor, conversations linger over warm bread and olives, reminding us that progress matters most when it stays close to people and solves real problems with clarity and care." "en" "zh"
 
 # zh -> en
-TESTS["zh-en"]="在一个宁静而明朗的傍晚，海港边的人们一边分享新鲜的面包与橄榄，一边讨论那些真正能解决问题、并且贴近人的进步。"
+warmup_case "在一个宁静而明朗的傍晚，海港边的人们一边分享新鲜的面包与橄榄，一边讨论那些真正能解决问题、并且贴近人的进步。" "zh" "en"
 
 # en -> el
-TESTS["en-el"]="When teams trust each other and explain complex ideas with simple language, collaboration becomes lighter, decisions get better, and ambitions turn into results that truly help people."
+warmup_case "When teams trust each other and explain complex ideas with simple language, collaboration becomes lighter, decisions get better, and ambitions turn into results that truly help people." "en" "el"
 
 # el -> en
-TESTS["el-en"]="Τις πρώτες ώρες του πρωινού, όταν η πόλη ξυπνά αργά, ένας απαλός άνεμος μεταφέρει μυρωδιές από φρέσκο ψωμί και καφέ, θυμίζοντας πως οι μικρές συνήθειες κρατούν τη ζωή ισορροπημένη."
+warmup_case "Τις πρώτες ώρες του πρωινού, όταν η πόλη ξυπνά αργά, ένας απαλός άνεμος μεταφέρει μυρωδιές από φρέσκο ψωμί και καφέ, θυμίζοντας πως οι μικρές συνήθειες κρατούν τη ζωή ισορροπημένη." "el" "en"
 
 # zh -> el
-TESTS["zh-el"]="当我们把复杂的想法讲清楚、把困难的事情做简单，人们就更容易彼此理解，也更愿意一起把事情向前推进。"
+warmup_case "当我们把复杂的想法讲清楚、把困难的事情做简单，人们就更容易彼此理解，也更愿意一起把事情向前推进。" "zh" "el"
 
 # el -> zh
-TESTS["el-zh"]="Η τεχνολογία έχει αξία μόνο όταν κάνει τη ζωή μας πιο ανθρώπινη και προσβάσιμη, δημιουργώντας ευκαιρίες για όλους χωρίς να χάνεται η ουσία της επικοινωνίας."
+warmup_case "Η τεχνολογία έχει αξία μόνο όταν κάνει τη ζωή μας πιο ανθρώπινη και προσβάσιμη, δημιουργώντας ευκαιρίες για όλους χωρίς να χάνεται η ουσία της επικοινωνίας." "el" "zh"
 
-for key in "${!TESTS[@]}"; do
-  src="${key%-*}"
-  tgt="${key#*-}"
-  sentence="${TESTS[$key]}"
-  echo "--- Warmup: $src → $tgt ---"
-  # Use curl URL-encoding to safely send Unicode text
-  curl -sG "http://127.0.0.1:$PORT/translate" \
-    --data-urlencode "text=$sentence" \
-    --data-urlencode "src=$src" \
-    --data-urlencode "tgt=$tgt" \
-    || true
-  echo -e "\n"
-done
-
-echo "✅ System is ready. Access API docs at: http://<server-ip>:$PORT/docs"
+echo -e "\n✅ System is ready. Access API docs at: http://<server-ip>:$PORT/docs"
 wait $SERVER_PID
