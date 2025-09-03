@@ -1,13 +1,14 @@
 # © 2025 Danny. Licensed under Apache License 2.0.
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel
 from typing import List, Optional
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 import torch
 import re
+from datetime import datetime
 
-app = FastAPI(title="OPUS-MT Translation Server", version="1.0.0")
+app = FastAPI(title="OPUS-MT Translation Server", version="1.1.0")
 
 # 支持的模型映射（已更新希腊语模型 ID）
 MODELS = {
@@ -58,11 +59,13 @@ class TranslateReq(BaseModel):
     source: Optional[str] = "auto"   # "auto" | "el" | "en" | "zh"
     target: str                      # "el" | "en" | "zh"
     max_new_tokens: Optional[int] = 256
+    debug: Optional[bool] = False    # 新增：是否开启调试模式
 
 class TranslateResp(BaseModel):
     translatedText: str
     route: List[str]
     detectedSource: str
+    debugInfo: Optional[dict] = None
 
 @app.post("/translate", response_model=TranslateResp)
 def translate(req: TranslateReq):
@@ -76,12 +79,23 @@ def translate(req: TranslateReq):
         return TranslateResp(translatedText=req.q, route=["noop"], detectedSource=detected)
 
     route = []
+    debug_info = {
+        "input": req.q,
+        "src": src,
+        "detected": detected,
+        "tgt": tgt,
+        "timestamp": datetime.utcnow().isoformat()
+    } if req.debug else None
+
     try:
         # 直接支持的方向
         if (detected, tgt) in MODELS:
             out = translate_once(req.q, detected, tgt, req.max_new_tokens)
             route.append(f"{detected}->{tgt}")
-            return TranslateResp(translatedText=out, route=route, detectedSource=detected)
+            if req.debug:
+                debug_info["modelUsed"] = MODELS[(detected, tgt)]
+                debug_info["intermediate"] = None
+            return TranslateResp(translatedText=out, route=route, detectedSource=detected, debugInfo=debug_info)
 
         # 不直接支持的方向，用英语中转
         if (detected, "en") in MODELS and ("en", tgt) in MODELS:
@@ -89,8 +103,32 @@ def translate(req: TranslateReq):
             route.append(f"{detected}->en")
             out = translate_once(mid, "en", tgt, req.max_new_tokens)
             route.append(f"en->{tgt}")
-            return TranslateResp(translatedText=out, route=route, detectedSource=detected)
+            if req.debug:
+                debug_info["modelUsed"] = [MODELS[(detected, "en")], MODELS[("en", tgt)]]
+                debug_info["intermediate"] = mid
+            return TranslateResp(translatedText=out, route=route, detectedSource=detected, debugInfo=debug_info)
 
         raise HTTPException(400, f"Unsupported translation route: {detected}->{tgt}")
     except ValueError as e:
         raise HTTPException(400, str(e))
+
+# 新增：直接测试模型原始输出
+@app.get("/debug_model")
+def debug_model(
+    text: str = Query(..., description="要测试的原文"),
+    src: str = Query(..., description="源语言代码，如 el/en/zh"),
+    tgt: str = Query(..., description="目标语言代码，如 el/en/zh"),
+    max_new_tokens: int = Query(256, description="最大生成长度")
+):
+    try:
+        out = translate_once(text, src, tgt, max_new_tokens)
+        return {
+            "input": text,
+            "src": src,
+            "tgt": tgt,
+            "model": MODELS.get((src, tgt)),
+            "output": out,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
