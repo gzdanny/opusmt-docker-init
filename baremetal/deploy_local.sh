@@ -13,8 +13,9 @@ PORT=${1:-8888}
 echo "=== [1/6] Installing system dependencies ==="
 sudo apt update
 sudo apt install -y --no-install-recommends \
-    ca-certificates tzdata git curl python3 python3-venv python3-pip build-essential
-
+    ca-certificates tzdata git curl python3 python3-venv python3-pip \
+    build-essential python3-dev pkg-config
+    
 echo "=== [2/6] Cloning repository ==="
 if [ -d "$HOME/opusmt-docker-init" ]; then
     echo "Directory ~/opusmt-docker-init already exists. Pulling latest changes..."
