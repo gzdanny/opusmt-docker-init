@@ -34,7 +34,7 @@ pip install --upgrade pip
 pip install fastapi "uvicorn[standard]" \
     transformers==4.42.0 sentencepiece sacremoses \
     --extra-index-url https://download.pytorch.org/whl/cpu \
-    torch==2.3.1+cpu
+    torch
 
 echo "=== [5/5] Starting service on port $PORT ==="
 echo "You can stop it with Ctrl+C."
