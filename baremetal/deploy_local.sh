@@ -10,12 +10,12 @@ set -e
 # Default port is 8888, can be overridden by first argument
 PORT=${1:-8888}
 
-echo "=== [1/5] Installing system dependencies ==="
+echo "=== [1/6] Installing system dependencies ==="
 sudo apt update
 sudo apt install -y --no-install-recommends \
-    ca-certificates tzdata git curl python3 python3-venv python3-pip
+    ca-certificates tzdata git curl python3 python3-venv python3-pip build-essential
 
-echo "=== [2/5] Cloning repository ==="
+echo "=== [2/6] Cloning repository ==="
 if [ -d "$HOME/opusmt-docker-init" ]; then
     echo "Directory ~/opusmt-docker-init already exists. Pulling latest changes..."
     cd ~/opusmt-docker-init
@@ -25,7 +25,7 @@ else
     cd ~/opusmt-docker-init
 fi
 
-echo "=== [3/5] Creating Python virtual environment ==="
+echo "=== [3/6] Creating Python virtual environment ==="
 if [ -d "venv" ]; then
     echo "Existing virtual environment detected. Removing..."
     rm -rf venv
@@ -33,14 +33,16 @@ fi
 python3 -m venv venv
 source venv/bin/activate
 
-echo "=== [4/5] Installing Python dependencies ==="
+echo "=== [4/6] Upgrading pip ==="
 pip install --upgrade pip
+
+echo "=== [5/6] Installing Python dependencies ==="
 pip install fastapi "uvicorn[standard]" \
     transformers==4.42.0 sentencepiece sacremoses \
     --extra-index-url https://download.pytorch.org/whl/cpu \
     torch
 
-echo "=== [5/5] Starting service on port $PORT ==="
+echo "=== [6/6] Starting service on port $PORT ==="
 echo "You can stop it with Ctrl+C."
 echo "Access API docs at: http://<server-ip>:$PORT/docs"
 uvicorn app:app --host 0.0.0.0 --port "$PORT" --workers 1 --reload
